@@ -67,7 +67,6 @@ public class HibernateGenericDao<T, I extends Serializable> implements
     public T persist(T entity) throws CRUDException {
         Session session = null;
         Transaction transaction = null;
-
         try {
             session = sessionFactory.openSession();
             transaction = session.beginTransaction();
