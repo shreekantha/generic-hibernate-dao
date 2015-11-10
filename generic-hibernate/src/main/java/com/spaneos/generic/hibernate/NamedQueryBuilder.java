@@ -14,7 +14,7 @@ import java.util.Objects;
 public class NamedQueryBuilder {
 
 	private String queryName;
-	private Map<Object, Object> params = new LinkedHashMap<Object, Object>();
+	private Map<String, Object> params = new LinkedHashMap<String, Object>();
 
 	public NamedQueryBuilder(String queryName) {
 		this.queryName = queryName;
@@ -25,7 +25,7 @@ public class NamedQueryBuilder {
 		return queryBuilder;
 	}
 
-	public NamedQueryBuilder params(Object param, Object val) {
+	public NamedQueryBuilder params(String param, Object val) {
 		this.params.put(param, val);
 		return this;
 	}

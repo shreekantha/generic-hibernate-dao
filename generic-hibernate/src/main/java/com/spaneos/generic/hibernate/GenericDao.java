@@ -76,7 +76,8 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @throws CRUDException
 	 * @author Shreekantha
 	 */
-	List<T> queryObjects(String queryName, Integer start, Integer limit, Object... params) throws CRUDException;
+	List<T> queryObjects(String queryName, Integer start, Integer limit,
+			Object... params) throws CRUDException;
 
 	/**
 	 * Executes the custom query to get a single object
@@ -101,6 +102,19 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @throws CRUDException
 	 * @author Brijesh
 	 */
-	void queryForDelete(String queryName, Object... params) throws CRUDException;
+	void queryForDelete(String queryName, Object... params)
+			throws CRUDException;
+
+	/**
+	 * 
+	 * 
+	 * @param namedQuery
+	 *            : contains the namedQuery name and named parameters for that
+	 *            query
+	 * @return list of objects
+	 * @throws CRUDException
+	 * @author Shreekantha
+	 */
+	List<T> find(NamedQuery namedQuery) throws CRUDException;
 
 }
