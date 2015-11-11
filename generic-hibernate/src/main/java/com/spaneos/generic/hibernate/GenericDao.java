@@ -76,6 +76,7 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @throws CRUDException
 	 * @author Shreekantha
 	 */
+	@Deprecated
 	List<T> queryObjects(String queryName, Integer start, Integer limit,
 			Object... params) throws CRUDException;
 
@@ -88,7 +89,7 @@ public interface GenericDao<T, I extends Serializable> {
 	 *            parameters to be set to execute the query
 	 * @return returns the list of objects
 	 * @throws CRUDException
-	 * @author Brijesh
+	 * @author Shreekantha
 	 */
 	T uniqueResult(String queryName, Object... params) throws CRUDException;
 
@@ -100,8 +101,9 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @param params
 	 *            parameters to be set to execute the query
 	 * @throws CRUDException
-	 * @author Brijesh
+	 * @author Shreekantha
 	 */
+	@Deprecated
 	void queryForDelete(String queryName, Object... params)
 			throws CRUDException;
 
@@ -116,5 +118,12 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @author Shreekantha
 	 */
 	List<T> find(NamedQuery namedQuery) throws CRUDException;
+
+	/**
+	 * @param namedQuery
+	 * @throws CRUDException
+	 * @author Shreekantha
+	 */
+	void deleteOrUpdate(NamedQuery namedQuery) throws CRUDException;
 
 }

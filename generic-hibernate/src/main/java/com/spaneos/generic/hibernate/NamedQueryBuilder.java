@@ -14,6 +14,8 @@ import java.util.Objects;
 public class NamedQueryBuilder {
 
 	private String queryName;
+	private int start;
+	private int limit;
 	private Map<String, Object> params = new LinkedHashMap<String, Object>();
 
 	public NamedQueryBuilder(String queryName) {
@@ -25,6 +27,16 @@ public class NamedQueryBuilder {
 		return queryBuilder;
 	}
 
+	public NamedQueryBuilder start(int start) {
+		this.start = start;
+		return this;
+	}
+
+	public NamedQueryBuilder limit(int limit) {
+		this.limit = limit;
+		return this;
+	}
+
 	public NamedQueryBuilder params(String param, Object val) {
 		this.params.put(param, val);
 		return this;
@@ -32,7 +44,8 @@ public class NamedQueryBuilder {
 
 	public NamedQuery build() {
 		Objects.requireNonNull(this.queryName, "Queryname must not be null");
-		NamedQuery namedQuery = new NamedQuery(this.queryName, this.params);
+		NamedQuery namedQuery = new NamedQuery(this.queryName, this.start,
+				this.limit, this.params);
 
 		return namedQuery;
 	}

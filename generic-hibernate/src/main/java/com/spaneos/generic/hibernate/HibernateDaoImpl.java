@@ -39,7 +39,6 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	// Repository class
 	private Class<T> persistenceClass;
 
-	@Inject
 	private SessionFactory sessionFactory;
 
 	// Set the persistence class on which CRUD operations being applied
@@ -49,12 +48,9 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				.getGenericSuperclass()).getActualTypeArguments()[0];
 	}
 
+	@Inject
 	public SessionFactory getSessionFactory() {
 		return sessionFactory;
-	}
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
 	}
 
 	// get the persistence class
@@ -129,6 +125,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 		} finally {
 			if (session != null) {
 				session.close();
+				session = null;
 			}
 		}
 	}
@@ -201,6 +198,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 
 	@SuppressWarnings(UNCHECKED)
 	@Override
+	@Deprecated
 	public List<T> queryObjects(String queryName, Integer start, Integer limit,
 			Object... params) throws CRUDException {
 		Session session = sessionFactory.openSession();
@@ -313,6 +311,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	}
 
 	@Override
+	@Deprecated
 	public void queryForDelete(String queryName, Object... params)
 			throws CRUDException {
 		Session session = sessionFactory.openSession();
@@ -345,17 +344,27 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	@Override
 	public List<T> find(NamedQuery namedQuery) throws CRUDException {
 
-		Session session = sessionFactory.openSession();
+		Session session = null;
+		Query query = null;
 
 		try {
-			Query query = session.getNamedQuery(namedQuery.getQueryName());
-			Map<String, Object> maps = namedQuery.getParams();
+			session = sessionFactory.openSession();
+			if (namedQuery != null) {
+				query = session.getNamedQuery(namedQuery.getQueryName());
+				Map<String, Object> maps = namedQuery.getParams();
 
-			for (Map.Entry<String, Object> param : maps.entrySet()) {
-				query.setParameter(param.getKey(), param.getValue());
+				for (Map.Entry<String, Object> param : maps.entrySet())
+					query.setParameter(param.getKey(), param.getValue());
+				
+				query.setFirstResult(namedQuery.getStart());
+				
+				int limit = namedQuery.getLimit();
+				if (limit > 0)
+					query.setMaxResults(limit);
+				
+				return query.list();
 			}
-
-			return query.list();
+			throw new CRUDException(CRUDException.UNKOWN_QUERY, namedQuery);
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
 			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
@@ -371,4 +380,35 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 		}
 	}
 
+	@Override
+	public void deleteOrUpdate(NamedQuery namedQuery) throws CRUDException {
+
+		Session session = null;
+		Query query = null;
+
+		try {
+			session = sessionFactory.openSession();
+			if (namedQuery != null) {
+				query = session.getNamedQuery(namedQuery.getQueryName());
+				Map<String, Object> maps = namedQuery.getParams();
+
+				for (Map.Entry<String, Object> param : maps.entrySet())
+					query.setParameter(param.getKey(), param.getValue());
+				query.executeUpdate();
+			}
+			throw new CRUDException(CRUDException.UNKOWN_QUERY, namedQuery);
+		} catch (HibernateException hibernateException) {
+			LOG.error(HIBERNATE_ERROR, hibernateException);
+			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
+					hibernateException);
+		} catch (Exception exception) {
+			LOG.error(EXCEPTION, exception);
+			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+		} finally {
+			if (session != null) {
+				session.close();
+				session = null;
+			}
+		}
+	}
 }
