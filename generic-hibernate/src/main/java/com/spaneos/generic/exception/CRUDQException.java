@@ -1,4 +1,4 @@
-package com.spaneos.generic.hibernate.exception;
+package com.spaneos.generic.exception;
 
 import org.apache.log4j.Logger;
 
@@ -9,11 +9,11 @@ import org.apache.log4j.Logger;
  * @author Sreekantha
  *
  */
-public class CRUDException extends RuntimeException {
+public class CRUDQException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final Logger LOGGER = Logger.getLogger(CRUDException.class);
+	private static final Logger LOGGER = Logger.getLogger(CRUDQException.class);
 
 	public static final String HIBERNATE_ERROR = "Hibernate exception occured : %s";
 	public static final String RECORD_NOT_FOUND_TO_UPDATE = "RNFTU";
@@ -35,11 +35,11 @@ public class CRUDException extends RuntimeException {
 
 	private final String message;
 
-	public CRUDException() {
+	public CRUDQException() {
 		this.message = "Hibernate CRUD Exception: ";
 	}
 
-	public CRUDException(String message) {
+	public CRUDQException(String message) {
 		super();
 		this.message = message;
 	}
@@ -48,11 +48,11 @@ public class CRUDException extends RuntimeException {
 	 * @param message
 	 * @param id
 	 */
-	public CRUDException(String message, Object... args) {
+	public CRUDQException(String message, Object... args) {
 		this.message = String.format(message, args);
 	}
 
-	public CRUDException(String message, Exception e) {
+	public CRUDQException(String message, Exception e) {
 		this.message = message;
 
 		LOGGER.error(message, e);

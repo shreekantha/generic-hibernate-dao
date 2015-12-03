@@ -1,38 +1,39 @@
 /**
  * 
  */
-package com.spaneos.generic.hibernate;
+package com.spaneos.generic;
 
 import java.io.Serializable;
 import java.util.List;
 
-import com.spaneos.generic.hibernate.exception.CRUDException;
+import com.spaneos.generic.exception.CRUDQException;
+import com.spaneos.generic.query.NamedQuery;
 
 /**
  * @author Shreekantha
  *
  */
-public interface GenericDao<T, I extends Serializable> {
+public interface GenericRepository<T, I extends Serializable> {
 
 	/**
 	 * Makes the transient object as persistent object
 	 * 
 	 * @param entity
 	 * @return
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	T persist(T entity) throws CRUDException;
+	T persist(T entity) throws CRUDQException;
 
 	/**
 	 * Moves the object from persistent state to removed state
 	 * 
 	 * @param entity
 	 *            entity to remove from the persistent
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	void delete(T entity) throws CRUDException;
+	void delete(T entity) throws CRUDQException;
 
 	/**
 	 * Retrieves the persistent object from database based on id
@@ -40,19 +41,28 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @param id
 	 * @param lockOption
 	 * @return entity
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	T findById(I id, boolean lockOption) throws CRUDException;
+	T findById(I id, boolean lockOption) throws CRUDQException;
 
 	/**
 	 * Retrieves the all records from the database using persistent entity
 	 * 
 	 * @return list of persistent objects
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	List<T> findAll(Integer start, Integer limit) throws CRUDException;
+	List<T> findAll(Integer start, Integer limit) throws CRUDQException;
+
+	/**
+	 * Retrieves the all records from the database using persistent entity
+	 * 
+	 * @return list of persistent objects
+	 * @throws CRUDQException
+	 * @author Shreekantha
+	 */
+	List<T> findAll() throws CRUDQException;
 
 	/**
 	 * Persists the list of objects into database using hibernate batch
@@ -60,10 +70,10 @@ public interface GenericDao<T, I extends Serializable> {
 	 * 
 	 * @param entities
 	 * @param batchSize
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	void batchPersist(List<T> entities, int batchSize) throws CRUDException;
+	void batchPersist(List<T> entities, int batchSize) throws CRUDQException;
 
 	/**
 	 * Executes the custom query to get the resultset
@@ -73,12 +83,12 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @param params
 	 *            parameters to be set to execute the query
 	 * @return returns the list of objects
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
 	@Deprecated
 	List<T> queryObjects(String queryName, Integer start, Integer limit,
-			Object... params) throws CRUDException;
+			Object... params) throws CRUDQException;
 
 	/**
 	 * Executes the custom query to get a single object
@@ -88,10 +98,10 @@ public interface GenericDao<T, I extends Serializable> {
 	 * @param params
 	 *            parameters to be set to execute the query
 	 * @return returns the list of objects
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	T uniqueResult(String queryName, Object... params) throws CRUDException;
+	T uniqueResult(String queryName, Object... params) throws CRUDQException;
 
 	/**
 	 * Executes the custom query for delete operation
@@ -100,12 +110,12 @@ public interface GenericDao<T, I extends Serializable> {
 	 *            name of the query to be executed
 	 * @param params
 	 *            parameters to be set to execute the query
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
 	@Deprecated
 	void queryForDelete(String queryName, Object... params)
-			throws CRUDException;
+			throws CRUDQException;
 
 	/**
 	 * 
@@ -114,16 +124,39 @@ public interface GenericDao<T, I extends Serializable> {
 	 *            : contains the namedQuery name and named parameters for that
 	 *            query
 	 * @return list of objects
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	List<T> find(NamedQuery namedQuery) throws CRUDException;
+	List<T> find(NamedQuery namedQuery) throws CRUDQException;
 
 	/**
 	 * @param namedQuery
-	 * @throws CRUDException
+	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	void deleteOrUpdate(NamedQuery namedQuery) throws CRUDException;
+	void deleteOrUpdate(NamedQuery namedQuery) throws CRUDQException;
+
+	/**
+	 * @return
+	 * @author Shreekantha
+	 */
+	int count();
+
+	/**
+	 * Method to execute the query that includes aggregate functions<br>
+	 * <ul>
+	 * <li>SUM</li>
+	 * <li>AVG</li>
+	 * <li>COUNT</li>
+	 * <li>FIRST</li>
+	 * <li>LAST</li>
+	 * <li>MAX</li>
+	 * <li>MIN</li>
+	 * </ul>
+	 * 
+	 * @param namedQuery
+	 * @return aggregated result
+	 */
+	//int aggregation(NamedQuery namedQuery);
 
 }

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.spaneos.generic.hibernate;
 
 import java.io.Serializable;
@@ -18,19 +15,24 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Projections;
 
-import com.spaneos.generic.hibernate.exception.CRUDException;
+import com.spaneos.generic.GenericRepository;
+import com.spaneos.generic.exception.CRUDQException;
+import com.spaneos.generic.query.NamedQuery;
 
 /**
- * {@link HibernateDaoImpl} for implementation of generic CRUD methods
+ * {@link HibernateImpl} for implementation of generic CRUD methods
  * 
  * @author Shreekantha
  *
  */
-public class HibernateDaoImpl<T, I extends Serializable> implements
-		GenericDao<T, I> {
+public class HibernateImpl<T, I extends Serializable> implements
+		GenericRepository<T, I> {
 
-	private static final Logger LOG = Logger.getLogger(HibernateDaoImpl.class);
+	//logger
+	private static final Logger LOG = Logger
+			.getLogger(HibernateImpl.class);
 
 	private static final String HIBERNATE_ERROR = "Hibernate exception: ";
 	private static final String EXCEPTION = "Exception: ";
@@ -39,18 +41,23 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	// Repository class
 	private Class<T> persistenceClass;
 
+	//SessionFactory
+	@Inject
 	private SessionFactory sessionFactory;
 
 	// Set the persistence class on which CRUD operations being applied
 	@SuppressWarnings("unchecked")
-	public HibernateDaoImpl() {
+	public HibernateImpl() {
 		this.persistenceClass = (Class<T>) ((ParameterizedType) getClass()
 				.getGenericSuperclass()).getActualTypeArguments()[0];
 	}
 
-	@Inject
 	public SessionFactory getSessionFactory() {
 		return sessionFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 
 	// get the persistence class
@@ -59,7 +66,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	}
 
 	@Override
-	public T persist(T entity) throws CRUDException {
+	public T persist(T entity) throws CRUDQException {
 		Session session = null;
 		Transaction transaction = null;
 		try {
@@ -77,7 +84,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				transaction.rollback();
 			}
 
-			throw new CRUDException(CRUDException.HIBERNATE_ERROR,
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
@@ -86,7 +93,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				transaction.rollback();
 			}
 
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -95,7 +102,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	}
 
 	@Override
-	public void delete(T entity) throws CRUDException {
+	public void delete(T entity) throws CRUDQException {
 		Session session = null;
 		Transaction transaction = null;
 
@@ -112,7 +119,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				transaction.rollback();
 			}
 
-			throw new CRUDException(CRUDException.HIBERNATE_ERROR,
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
@@ -121,7 +128,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				transaction.rollback();
 			}
 
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -132,7 +139,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 
 	@SuppressWarnings(UNCHECKED)
 	@Override
-	public T findById(I id, boolean lock) throws CRUDException {
+	public T findById(I id, boolean lock) throws CRUDQException {
 		Session session = null;
 		T entity;
 
@@ -149,12 +156,36 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 			return entity;
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(String.format(
-					CRUDException.HIBERNATE_ERROR,
+			throw new CRUDQException(String.format(
+					CRUDQException.HIBERNATE_ERROR,
 					hibernateException.getMessage()), hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<T> findAll() throws CRUDQException {
+		Session session = null;
+		Criteria criteria = null;
+		try {
+			session = sessionFactory.openSession();
+			criteria = session.createCriteria(getPersistenceClass());
+			return criteria.list();
+		} catch (HibernateException hibernateException) {
+			LOG.error(HIBERNATE_ERROR, hibernateException);
+			throw new CRUDQException(String.format(
+					CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage()), hibernateException);
+		} catch (Exception exception) {
+			LOG.error(EXCEPTION, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -164,7 +195,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 
 	@SuppressWarnings(UNCHECKED)
 	@Override
-	public List<T> findAll(Integer start, Integer limit) throws CRUDException {
+	public List<T> findAll(Integer start, Integer limit) throws CRUDQException {
 		Session session = null;
 		Criteria criteria = null;
 
@@ -179,16 +210,15 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 			if (limit != null) {
 				criteria.setMaxResults(limit);
 			}
-
 			return criteria.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(String.format(
-					CRUDException.HIBERNATE_ERROR,
+			throw new CRUDQException(String.format(
+					CRUDQException.HIBERNATE_ERROR,
 					hibernateException.getMessage()), hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -200,11 +230,12 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	@Override
 	@Deprecated
 	public List<T> queryObjects(String queryName, Integer start, Integer limit,
-			Object... params) throws CRUDException {
+			Object... params) throws CRUDQException {
 		Session session = sessionFactory.openSession();
 
 		try {
 			Query query = session.getNamedQuery(queryName);
+			
 			int index = 0;
 
 			for (Object param : params) {
@@ -222,11 +253,11 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 			return query.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
+			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -237,7 +268,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 
 	@Override
 	public void batchPersist(List<T> entities, int batchSize)
-			throws CRUDException {
+			throws CRUDQException {
 		Session session = null;
 		Transaction transaction = null;
 
@@ -262,8 +293,8 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				transaction.rollback();
 			}
 
-			throw new CRUDException(String.format(
-					CRUDException.HIBERNATE_ERROR,
+			throw new CRUDQException(String.format(
+					CRUDQException.HIBERNATE_ERROR,
 					hibernateException.getMessage()), hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
@@ -272,7 +303,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 				transaction.rollback();
 			}
 
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -283,7 +314,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	@SuppressWarnings(UNCHECKED)
 	@Override
 	public T uniqueResult(String queryName, Object... params)
-			throws CRUDException {
+			throws CRUDQException {
 		Session session = sessionFactory.openSession();
 
 		try {
@@ -297,11 +328,11 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 			return (T) query.uniqueResult();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
+			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -313,7 +344,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	@Override
 	@Deprecated
 	public void queryForDelete(String queryName, Object... params)
-			throws CRUDException {
+			throws CRUDQException {
 		Session session = sessionFactory.openSession();
 
 		try {
@@ -327,11 +358,11 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 			query.executeUpdate();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
+			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -342,7 +373,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<T> find(NamedQuery namedQuery) throws CRUDException {
+	public List<T> find(NamedQuery namedQuery) throws CRUDQException {
 
 		Session session = null;
 		Query query = null;
@@ -350,28 +381,24 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 		try {
 			session = sessionFactory.openSession();
 			if (namedQuery != null) {
-				query = session.getNamedQuery(namedQuery.getQueryName());
-				Map<String, Object> maps = namedQuery.getParams();
-
-				for (Map.Entry<String, Object> param : maps.entrySet())
-					query.setParameter(param.getKey(), param.getValue());
-				
+				query = prepareQuery(namedQuery, session);
+				query.setProperties(namedQuery.getParams());
 				query.setFirstResult(namedQuery.getStart());
-				
+
 				int limit = namedQuery.getLimit();
 				if (limit > 0)
 					query.setMaxResults(limit);
-				
+
 				return query.list();
 			}
-			throw new CRUDException(CRUDException.UNKOWN_QUERY, namedQuery);
+			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
+			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
@@ -381,7 +408,7 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 	}
 
 	@Override
-	public void deleteOrUpdate(NamedQuery namedQuery) throws CRUDException {
+	public void deleteOrUpdate(NamedQuery namedQuery) throws CRUDQException {
 
 		Session session = null;
 		Query query = null;
@@ -389,25 +416,57 @@ public class HibernateDaoImpl<T, I extends Serializable> implements
 		try {
 			session = sessionFactory.openSession();
 			if (namedQuery != null) {
-				query = session.getNamedQuery(namedQuery.getQueryName());
-				Map<String, Object> maps = namedQuery.getParams();
-
-				for (Map.Entry<String, Object> param : maps.entrySet())
-					query.setParameter(param.getKey(), param.getValue());
+				query = prepareQuery(namedQuery, session);
 				query.executeUpdate();
 			}
-			throw new CRUDException(CRUDException.UNKOWN_QUERY, namedQuery);
+			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDException(CRUDException.QUERY_CAN_NOT_BE_EXECUTED,
+			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
 					hibernateException);
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDException(CRUDException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
 		} finally {
 			if (session != null) {
 				session.close();
 				session = null;
+			}
+		}
+	}
+
+	// Prepares the Query using NamedQuery and its parameters
+	private Query prepareQuery(NamedQuery namedQuery, Session session) {
+		Query query;
+		query = session.getNamedQuery(namedQuery.getQueryName());
+		Map<String, Object> params = namedQuery.getParams();
+
+		for (Map.Entry<String, Object> param : params.entrySet())
+			query.setParameter(param.getKey(), param.getValue());
+		return query;
+	}
+
+	@Override
+	public int count() {
+		Session session = null;
+		Criteria criteria = null;
+
+		try {
+			session = sessionFactory.openSession();
+			criteria = session.createCriteria(getPersistenceClass());
+			criteria.setProjection(Projections.rowCount());
+			return (int) criteria.uniqueResult();
+		} catch (HibernateException hibernateException) {
+			LOG.error(HIBERNATE_ERROR, hibernateException);
+			throw new CRUDQException(String.format(
+					CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage()), hibernateException);
+		} catch (Exception exception) {
+			LOG.error(EXCEPTION, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+		} finally {
+			if (session != null) {
+				session.close();
 			}
 		}
 	}

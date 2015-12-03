@@ -1,4 +1,4 @@
-package com.spaneos.generic.hibernate;
+package com.spaneos.generic.query;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,18 +11,18 @@ import java.util.Objects;
  *
  *
  */
-public class NamedQueryBuilder {
+public final class NamedQueryBuilder {
 
 	private String queryName;
 	private int start;
 	private int limit;
 	private Map<String, Object> params = new LinkedHashMap<String, Object>();
 
-	public NamedQueryBuilder(String queryName) {
+	private NamedQueryBuilder(String queryName) {
 		this.queryName = queryName;
 	}
 
-	public static NamedQueryBuilder query(String queryName) {
+	public static NamedQueryBuilder queryName(String queryName) {
 		NamedQueryBuilder queryBuilder = new NamedQueryBuilder(queryName);
 		return queryBuilder;
 	}
@@ -37,16 +37,15 @@ public class NamedQueryBuilder {
 		return this;
 	}
 
-	public NamedQueryBuilder params(String param, Object val) {
-		this.params.put(param, val);
+	public NamedQueryBuilder param(String namedParam, Object value) {
+		this.params.put(namedParam, value);
 		return this;
 	}
 
 	public NamedQuery build() {
-		Objects.requireNonNull(this.queryName, "Queryname must not be null");
+		Objects.requireNonNull(this.queryName, "Query name must not be null");
 		NamedQuery namedQuery = new NamedQuery(this.queryName, this.start,
 				this.limit, this.params);
-
 		return namedQuery;
 	}
 }

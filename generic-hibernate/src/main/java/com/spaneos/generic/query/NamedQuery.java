@@ -1,4 +1,4 @@
-package com.spaneos.generic.hibernate;
+package com.spaneos.generic.query;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ public class NamedQuery {
 
 	private Map<String, Object> params;
 
-	public NamedQuery(String name, int start, int limit,
+	 NamedQuery(String name, int start, int limit,
 			Map<String, Object> params) {
 		this.queryName = name;
 		this.start = start;
