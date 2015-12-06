@@ -65,8 +65,8 @@ public interface GenericRepository<T, I extends Serializable> {
 	List<T> findAll() throws CRUDQException;
 
 	/**
-	 * Persists the list of objects into database using hibernate batch
-	 * processing
+	 * Persists the list of objects into database using  batch
+	 * processing and prerequisite is batch persisting should be enabled. 
 	 * 
 	 * @param entities
 	 * @param batchSize
@@ -127,7 +127,7 @@ public interface GenericRepository<T, I extends Serializable> {
 	 * @throws CRUDQException
 	 * @author Shreekantha
 	 */
-	List<T> find(NamedQuery namedQuery) throws CRUDQException;
+	List<T> findAll(NamedQuery namedQuery) throws CRUDQException;
 
 	/**
 	 * @param namedQuery

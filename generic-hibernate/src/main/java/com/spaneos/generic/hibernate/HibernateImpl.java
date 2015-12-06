@@ -30,9 +30,8 @@ import com.spaneos.generic.query.NamedQuery;
 public class HibernateImpl<T, I extends Serializable> implements
 		GenericRepository<T, I> {
 
-	//logger
-	private static final Logger LOG = Logger
-			.getLogger(HibernateImpl.class);
+	// logger
+	private static final Logger LOG = Logger.getLogger(HibernateImpl.class);
 
 	private static final String HIBERNATE_ERROR = "Hibernate exception: ";
 	private static final String EXCEPTION = "Exception: ";
@@ -41,7 +40,7 @@ public class HibernateImpl<T, I extends Serializable> implements
 	// Repository class
 	private Class<T> persistenceClass;
 
-	//SessionFactory
+	// SessionFactory
 	@Inject
 	private SessionFactory sessionFactory;
 
@@ -80,24 +79,19 @@ public class HibernateImpl<T, I extends Serializable> implements
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
 
-			if (transaction != null) {
-				transaction.rollback();
-			}
+			rollBack(transaction);
 
 			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException);
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
 
-			if (transaction != null) {
-				transaction.rollback();
-			}
+			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-			}
+			closeSession(session);
 		}
 	}
 
@@ -115,25 +109,19 @@ public class HibernateImpl<T, I extends Serializable> implements
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
 
-			if (transaction != null) {
-				transaction.rollback();
-			}
+			rollBack(transaction);
 
 			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException);
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
 
-			if (transaction != null) {
-				transaction.rollback();
-			}
+			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-				session = null;
-			}
+			closeSession(session);
 		}
 	}
 
@@ -156,16 +144,16 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return entity;
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(String.format(
-					CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage()), hibernateException);
+
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage());
+
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-			}
+			closeSession(session);
 		}
 	}
 
@@ -180,16 +168,14 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return criteria.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(String.format(
-					CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage()), hibernateException);
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-			}
+			closeSession(session);
 		}
 	}
 
@@ -213,16 +199,48 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return criteria.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(String.format(
-					CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage()), hibernateException);
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
+			closeSession(session);
+		}
+	}
+
+	@SuppressWarnings(UNCHECKED)
+	@Override
+	public List<T> findAll(NamedQuery namedQuery) throws CRUDQException {
+
+		Session session = null;
+		Query query = null;
+
+		try {
+			session = sessionFactory.openSession();
+			if (namedQuery != null) {
+				query = prepareQuery(namedQuery, session);
+				query.setProperties(namedQuery.getParams());
+				query.setFirstResult(namedQuery.getStart());
+
+				int limit = namedQuery.getLimit();
+				if (limit > 0)
+					query.setMaxResults(limit);
+
+				return query.list();
 			}
+			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
+		} catch (HibernateException hibernateException) {
+			LOG.error(HIBERNATE_ERROR, hibernateException);
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,namedQuery,
+					hibernateException.getMessage());
+		} catch (Exception exception) {
+			LOG.error(EXCEPTION, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
+		} finally {
+			closeSession(session);
 		}
 	}
 
@@ -235,7 +253,7 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 		try {
 			Query query = session.getNamedQuery(queryName);
-			
+
 			int index = 0;
 
 			for (Object param : params) {
@@ -253,16 +271,14 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return query.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
-					hibernateException);
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,queryName,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-				session = null;
-			}
+			closeSession(session);
 		}
 	}
 
@@ -289,25 +305,19 @@ public class HibernateImpl<T, I extends Serializable> implements
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
 
-			if (transaction != null) {
-				transaction.rollback();
-			}
+			rollBack(transaction);
 
-			throw new CRUDQException(String.format(
-					CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage()), hibernateException);
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
 
-			if (transaction != null) {
-				transaction.rollback();
-			}
+			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-			}
+			closeSession(session);
 		}
 	}
 
@@ -328,16 +338,14 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return (T) query.uniqueResult();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
-					hibernateException);
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,queryName,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-				session = null;
-			}
+			closeSession(session);
 		}
 	}
 
@@ -358,52 +366,14 @@ public class HibernateImpl<T, I extends Serializable> implements
 			query.executeUpdate();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
-					hibernateException);
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,queryName,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-				session = null;
-			}
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<T> find(NamedQuery namedQuery) throws CRUDQException {
-
-		Session session = null;
-		Query query = null;
-
-		try {
-			session = sessionFactory.openSession();
-			if (namedQuery != null) {
-				query = prepareQuery(namedQuery, session);
-				query.setProperties(namedQuery.getParams());
-				query.setFirstResult(namedQuery.getStart());
-
-				int limit = namedQuery.getLimit();
-				if (limit > 0)
-					query.setMaxResults(limit);
-
-				return query.list();
-			}
-			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
-		} catch (HibernateException hibernateException) {
-			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
-					hibernateException);
-		} catch (Exception exception) {
-			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
-		} finally {
-			if (session != null) {
-				session.close();
-				session = null;
-			}
+			closeSession(session);
 		}
 	}
 
@@ -422,25 +392,22 @@ public class HibernateImpl<T, I extends Serializable> implements
 			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.QUERY_CAN_NOT_BE_EXECUTED,
-					hibernateException);
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,namedQuery,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-				session = null;
-			}
+			closeSession(session);
 		}
 	}
 
 	// Prepares the Query using NamedQuery and its parameters
 	private Query prepareQuery(NamedQuery namedQuery, Session session) {
-		Query query;
-		query = session.getNamedQuery(namedQuery.getQueryName());
+		Query query=session.getNamedQuery(namedQuery.getQueryName());
 		Map<String, Object> params = namedQuery.getParams();
-
+		// query.setProperties(params);
 		for (Map.Entry<String, Object> param : params.entrySet())
 			query.setParameter(param.getKey(), param.getValue());
 		return query;
@@ -458,16 +425,30 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return (int) criteria.uniqueResult();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(String.format(
-					CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage()), hibernateException);
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
+					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
+					exception.getMessage());
 		} finally {
-			if (session != null) {
-				session.close();
-			}
+			closeSession(session);
+		}
+	}
+
+	// used roll back the uncommitted persisted data
+	private void rollBack(Transaction transaction) {
+		if (transaction != null) {
+			transaction.rollback();
+			transaction = null;
+		}
+	}
+
+	// used to close the session
+	private void closeSession(Session session) {
+		if (session != null) {
+			session.close();
+			session = null;
 		}
 	}
 }

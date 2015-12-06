@@ -18,15 +18,11 @@ public final class NamedQueryBuilder {
 	private int limit;
 	private Map<String, Object> params = new LinkedHashMap<String, Object>();
 
-	private NamedQueryBuilder(String queryName) {
+	 NamedQueryBuilder(String queryName) {
 		this.queryName = queryName;
 	}
 
-	public static NamedQueryBuilder queryName(String queryName) {
-		NamedQueryBuilder queryBuilder = new NamedQueryBuilder(queryName);
-		return queryBuilder;
-	}
-
+	
 	public NamedQueryBuilder start(int start) {
 		this.start = start;
 		return this;
