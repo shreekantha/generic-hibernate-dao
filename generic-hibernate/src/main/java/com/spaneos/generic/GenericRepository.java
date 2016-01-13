@@ -47,7 +47,7 @@ public interface GenericRepository<T, I extends Serializable> {
 	T findById(I id, boolean lockOption) throws CRUDQException;
 
 	/**
-	 * Retrieves the all records from the database using persistent entity
+	 * Retrieves all the records from the database using persistent entity
 	 * 
 	 * @return list of persistent objects
 	 * @throws CRUDQException
@@ -56,7 +56,7 @@ public interface GenericRepository<T, I extends Serializable> {
 	List<T> findAll(Integer start, Integer limit) throws CRUDQException;
 
 	/**
-	 * Retrieves the all records from the database using persistent entity
+	 * Retrieves all the records from the database using persistent entity
 	 * 
 	 * @return list of persistent objects
 	 * @throws CRUDQException
@@ -65,60 +65,7 @@ public interface GenericRepository<T, I extends Serializable> {
 	List<T> findAll() throws CRUDQException;
 
 	/**
-	 * Persists the list of objects into database using  batch
-	 * processing and prerequisite is batch persisting should be enabled. 
-	 * 
-	 * @param entities
-	 * @param batchSize
-	 * @throws CRUDQException
-	 * @author Shreekantha
-	 */
-	void batchPersist(List<T> entities, int batchSize) throws CRUDQException;
-
-	/**
-	 * Executes the custom query to get the resultset
-	 * 
-	 * @param queryName
-	 *            name of the query to be executed
-	 * @param params
-	 *            parameters to be set to execute the query
-	 * @return returns the list of objects
-	 * @throws CRUDQException
-	 * @author Shreekantha
-	 */
-	@Deprecated
-	List<T> queryObjects(String queryName, Integer start, Integer limit,
-			Object... params) throws CRUDQException;
-
-	/**
-	 * Executes the custom query to get a single object
-	 * 
-	 * @param queryName
-	 *            name of the query to be executed
-	 * @param params
-	 *            parameters to be set to execute the query
-	 * @return returns the list of objects
-	 * @throws CRUDQException
-	 * @author Shreekantha
-	 */
-	T uniqueResult(String queryName, Object... params) throws CRUDQException;
-
-	/**
-	 * Executes the custom query for delete operation
-	 * 
-	 * @param queryName
-	 *            name of the query to be executed
-	 * @param params
-	 *            parameters to be set to execute the query
-	 * @throws CRUDQException
-	 * @author Shreekantha
-	 */
-	@Deprecated
-	void queryForDelete(String queryName, Object... params)
-			throws CRUDQException;
-
-	/**
-	 * 
+	 * Retrieves all the records from the database using named query
 	 * 
 	 * @param namedQuery
 	 *            : contains the namedQuery name and named parameters for that
@@ -130,6 +77,76 @@ public interface GenericRepository<T, I extends Serializable> {
 	List<T> findAll(NamedQuery namedQuery) throws CRUDQException;
 
 	/**
+	 * Persists the list of objects into database using batch processing<br>
+	 * <strong> Prerequisite :Batch persisting should be enabled</strong>.
+	 * 
+	 * @param entities
+	 * @param batchSize
+	 * @throws CRUDQException
+	 * @author Shreekantha
+	 */
+	void batchPersist(List<T> entities, int batchSize) throws CRUDQException;
+
+	/**
+	 * Executes the custom query to get the resultset (Since it is deprecated ,
+	 * use findAll(NamedQuery namedQuery) method
+	 * 
+	 * @param queryName
+	 *            name of the query to be executed
+	 * @param params
+	 *            parameters to be set to execute the query
+	 * @return returns the list of objects
+	 * @throws CRUDQException
+	 * @author Shreekantha
+	 */
+	@Deprecated
+	List<T> queryObjects(String queryName, Integer start, Integer limit, Object... params) throws CRUDQException;
+
+	/**
+	 * Executes the custom query to get a single object<br>
+	 * <Strong> Since it is deprecated, use uniqueResult(NamedQuery
+	 * namedQuery)</strong>
+	 * 
+	 * @param queryName
+	 *            name of the query to be executed
+	 * @param params
+	 *            parameters to be set to execute the query
+	 * @return returns the unique record
+	 * @throws CRUDQException
+	 * @author Shreekantha
+	 */
+	@Deprecated
+	T uniqueResult(String queryName, Object... params) throws CRUDQException;
+
+	/**
+	 * Executes the custom query to get a single object
+	 * 
+	 * @param namedQuery
+	 *            : contains the namedQuery name and named parameters for that
+	 *            query
+	 * @return returns the unique record
+	 * @throws CRUDQException
+	 * @author Shreekantha
+	 */
+	T uniqueResult(NamedQuery namedQuery) throws CRUDQException;
+
+	/**
+	 * Executes the custom query for delete operation<br>
+	 * <Strong> Since it is deprecated, use deleteOrUpdate(NamedQuery namedQuery)</strong>
+	 * 
+	 * @param queryName
+	 *            name of the query to be executed
+	 * @param params
+	 *            parameters to be set to execute the query
+	 * @throws CRUDQException
+	 * @author Shreekantha
+	 */
+	@Deprecated
+	void queryForDelete(String queryName, Object... params) throws CRUDQException;
+
+	/**
+	 * Executes the custom query for delete / update operation
+	 * 
 	 * @param namedQuery
 	 * @throws CRUDQException
 	 * @author Shreekantha
@@ -137,7 +154,9 @@ public interface GenericRepository<T, I extends Serializable> {
 	void deleteOrUpdate(NamedQuery namedQuery) throws CRUDQException;
 
 	/**
-	 * @return
+	 * Method to count the number records present in the database
+	 * 
+	 * @return number of records
 	 * @author Shreekantha
 	 */
 	int count();
@@ -157,6 +176,6 @@ public interface GenericRepository<T, I extends Serializable> {
 	 * @param namedQuery
 	 * @return aggregated result
 	 */
-	//int aggregation(NamedQuery namedQuery);
+	// int aggregation(NamedQuery namedQuery);
 
 }

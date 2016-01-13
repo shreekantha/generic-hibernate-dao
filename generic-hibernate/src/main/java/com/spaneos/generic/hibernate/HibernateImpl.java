@@ -27,8 +27,7 @@ import com.spaneos.generic.query.NamedQuery;
  * @author Shreekantha
  *
  */
-public class HibernateImpl<T, I extends Serializable> implements
-		GenericRepository<T, I> {
+public class HibernateImpl<T, I extends Serializable> implements GenericRepository<T, I> {
 
 	// logger
 	private static final Logger LOG = Logger.getLogger(HibernateImpl.class);
@@ -47,8 +46,13 @@ public class HibernateImpl<T, I extends Serializable> implements
 	// Set the persistence class on which CRUD operations being applied
 	@SuppressWarnings("unchecked")
 	public HibernateImpl() {
-		this.persistenceClass = (Class<T>) ((ParameterizedType) getClass()
-				.getGenericSuperclass()).getActualTypeArguments()[0];
+		this.persistenceClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
+				.getActualTypeArguments()[0];
+	}
+
+	// get the persistence class
+	public Class<T> getPersistenceClass() {
+		return persistenceClass;
 	}
 
 	public SessionFactory getSessionFactory() {
@@ -57,11 +61,6 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
-	}
-
-	// get the persistence class
-	public Class<T> getPersistenceClass() {
-		return persistenceClass;
 	}
 
 	@Override
@@ -81,15 +80,13 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
 
 			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -111,15 +108,13 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
 
 			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -135,8 +130,7 @@ public class HibernateImpl<T, I extends Serializable> implements
 			session = sessionFactory.openSession();
 
 			if (lock) {
-				entity = (T) session.get(getPersistenceClass(), id,
-						LockOptions.UPGRADE);
+				entity = (T) session.get(getPersistenceClass(), id, LockOptions.UPGRADE);
 			} else {
 				entity = (T) session.get(getPersistenceClass(), id);
 			}
@@ -145,13 +139,11 @@ public class HibernateImpl<T, I extends Serializable> implements
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
 
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -168,12 +160,10 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return criteria.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -199,12 +189,10 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return criteria.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -233,12 +221,11 @@ public class HibernateImpl<T, I extends Serializable> implements
 			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,namedQuery,
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY, namedQuery,
 					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -247,8 +234,8 @@ public class HibernateImpl<T, I extends Serializable> implements
 	@SuppressWarnings(UNCHECKED)
 	@Override
 	@Deprecated
-	public List<T> queryObjects(String queryName, Integer start, Integer limit,
-			Object... params) throws CRUDQException {
+	public List<T> queryObjects(String queryName, Integer start, Integer limit, Object... params)
+			throws CRUDQException {
 		Session session = sessionFactory.openSession();
 
 		try {
@@ -271,20 +258,18 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return query.list();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,queryName,
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY, queryName,
 					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
 	}
 
 	@Override
-	public void batchPersist(List<T> entities, int batchSize)
-			throws CRUDQException {
+	public void batchPersist(List<T> entities, int batchSize) throws CRUDQException {
 		Session session = null;
 		Transaction transaction = null;
 
@@ -307,15 +292,13 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
 
 			rollBack(transaction);
 
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -323,8 +306,8 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 	@SuppressWarnings(UNCHECKED)
 	@Override
-	public T uniqueResult(String queryName, Object... params)
-			throws CRUDQException {
+	@Deprecated
+	public T uniqueResult(String queryName, Object... params) throws CRUDQException {
 		Session session = sessionFactory.openSession();
 
 		try {
@@ -338,21 +321,45 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return (T) query.uniqueResult();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,queryName,
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY, queryName,
 					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
 	}
 
+	@SuppressWarnings(UNCHECKED)
+	@Override
+	public T uniqueResult(NamedQuery namedQuery) throws CRUDQException {
+		
+		Session session = null;
+		Query query = null;
+
+		try {
+			session = sessionFactory.openSession();
+			if (namedQuery != null) {
+				query = prepareQuery(namedQuery, session);
+
+				return (T) query.uniqueResult();
+			}
+			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
+		} catch (HibernateException hibernateException) {
+			LOG.error(HIBERNATE_ERROR, hibernateException);
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY, namedQuery,
+					hibernateException.getMessage());
+		} catch (Exception exception) {
+			LOG.error(EXCEPTION, exception);
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
+		} finally {
+			closeSession(session);
+		}
+	}
 	@Override
 	@Deprecated
-	public void queryForDelete(String queryName, Object... params)
-			throws CRUDQException {
+	public void queryForDelete(String queryName, Object... params) throws CRUDQException {
 		Session session = sessionFactory.openSession();
 
 		try {
@@ -366,12 +373,11 @@ public class HibernateImpl<T, I extends Serializable> implements
 			query.executeUpdate();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,queryName,
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY, queryName,
 					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -392,12 +398,11 @@ public class HibernateImpl<T, I extends Serializable> implements
 			throw new CRUDQException(CRUDQException.UNKOWN_QUERY, namedQuery);
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY,namedQuery,
+			throw new CRUDQException(CRUDQException.UNABLE_TO_EXECUTE_QUERY, namedQuery,
 					hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
@@ -405,7 +410,7 @@ public class HibernateImpl<T, I extends Serializable> implements
 
 	// Prepares the Query using NamedQuery and its parameters
 	private Query prepareQuery(NamedQuery namedQuery, Session session) {
-		Query query=session.getNamedQuery(namedQuery.getQueryName());
+		Query query = session.getNamedQuery(namedQuery.getQueryName());
 		Map<String, Object> params = namedQuery.getParams();
 		// query.setProperties(params);
 		for (Map.Entry<String, Object> param : params.entrySet())
@@ -425,12 +430,10 @@ public class HibernateImpl<T, I extends Serializable> implements
 			return (int) criteria.uniqueResult();
 		} catch (HibernateException hibernateException) {
 			LOG.error(HIBERNATE_ERROR, hibernateException);
-			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR,
-					hibernateException.getMessage());
+			throw new CRUDQException(CRUDQException.HIBERNATE_ERROR, hibernateException.getMessage());
 		} catch (Exception exception) {
 			LOG.error(EXCEPTION, exception);
-			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR,
-					exception.getMessage());
+			throw new CRUDQException(CRUDQException.UNKNOWN_ERROR, exception.getMessage());
 		} finally {
 			closeSession(session);
 		}
