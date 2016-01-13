@@ -334,7 +334,7 @@ public class HibernateImpl<T, I extends Serializable> implements GenericReposito
 	@SuppressWarnings(UNCHECKED)
 	@Override
 	public T uniqueResult(NamedQuery namedQuery) throws CRUDQException {
-		
+
 		Session session = null;
 		Query query = null;
 
@@ -357,6 +357,7 @@ public class HibernateImpl<T, I extends Serializable> implements GenericReposito
 			closeSession(session);
 		}
 	}
+
 	@Override
 	@Deprecated
 	public void queryForDelete(String queryName, Object... params) throws CRUDQException {
@@ -408,16 +409,6 @@ public class HibernateImpl<T, I extends Serializable> implements GenericReposito
 		}
 	}
 
-	// Prepares the Query using NamedQuery and its parameters
-	private Query prepareQuery(NamedQuery namedQuery, Session session) {
-		Query query = session.getNamedQuery(namedQuery.getQueryName());
-		Map<String, Object> params = namedQuery.getParams();
-		// query.setProperties(params);
-		for (Map.Entry<String, Object> param : params.entrySet())
-			query.setParameter(param.getKey(), param.getValue());
-		return query;
-	}
-
 	@Override
 	public int count() {
 		Session session = null;
@@ -437,6 +428,16 @@ public class HibernateImpl<T, I extends Serializable> implements GenericReposito
 		} finally {
 			closeSession(session);
 		}
+	}
+
+	// Prepares the Query using NamedQuery and its parameters
+	private Query prepareQuery(NamedQuery namedQuery, Session session) {
+		Query query = session.getNamedQuery(namedQuery.getQueryName());
+		Map<String, Object> params = namedQuery.getParams();
+		// query.setProperties(params);
+		for (Map.Entry<String, Object> param : params.entrySet())
+			query.setParameter(param.getKey(), param.getValue());
+		return query;
 	}
 
 	// used roll back the uncommitted persisted data
